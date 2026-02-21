@@ -1,0 +1,44 @@
+{
+  "name": "opencode-memelord",
+  "version": "0.0.1",
+  "description": "OpenCode plugin for memelord - persistent memory for coding agents",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "bun build ./src/index.ts --outdir ./dist --target node && tsc --emitDeclarationOnly",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "memelord",
+    "memory",
+    "ai",
+    "coding-agent"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/buzinas/opencode-memelord"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.2.10",
+    "memelord": "^0.1.4"
+  },
+  "devDependencies": {
+    "@opencode-ai/sdk": "^1.2.10",
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  },
+  "opencode": {
+    "type": "plugin",
+    "hooks": [
+      "event",
+      "tool.execute.after"
+    ]
+  },
+  "files": [
+    "dist"
+  ]
+}
