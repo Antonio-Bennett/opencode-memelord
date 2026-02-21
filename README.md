@@ -4,70 +4,57 @@
 
 ## What it does
 
-Gives your OpenCode agent persistent memory that improves over time. Memories from past sessions are injected at session start, tool failures are tracked, and transcripts are analyzed for self-corrections and discoveries.
+Gives your OpenCode agent persistent memory that improves over time. The plugin provides everything out of the box:
 
-| OpenCode event | memelord hook | Purpose |
-|---|---|---|
-| `session.created` | `session-start` | Inject top memories into context |
-| `tool.execute.after` | `post-tool-use` | Record tool failures for pattern detection |
-| `session.idle` | `stop` | Analyze transcript for corrections and discoveries |
-| `session.deleted` | `session-end` | Embed pending memories, run weight decay |
+**Memory tools** (replaces the MCP server):
+
+| Tool                | Purpose                                                                 |
+| ------------------- | ----------------------------------------------------------------------- |
+| `memory_start_task` | Retrieve relevant memories via vector search at the start of every task |
+| `memory_report`     | Store corrections, user inputs, or codebase insights                    |
+| `memory_end_task`   | Rate retrieved memories and record task outcome                         |
+| `memory_contradict` | Flag an incorrect memory and delete it                                  |
+| `memory_status`     | Show memory system stats                                                |
+
+**Lifecycle hooks** (automatic, no agent action needed):
+
+| OpenCode event       | Purpose                                                 |
+| -------------------- | ------------------------------------------------------- |
+| `session.created`    | Inject top memories into context                        |
+| `tool.execute.after` | Record tool failures for pattern detection              |
+| `session.idle`       | Analyze transcript for self-corrections and discoveries |
+| `session.deleted`    | Embed pending memories, run weight decay                |
 
 ## Install
 
-### Quick start (with memelord init)
-
-```bash
-npm install -g memelord
-cd your-project
-memelord init
-```
-
-This configures both the MCP server (for memory tools) and the plugin (for hooks).
-
-### Manual setup
-
-Add to your `opencode.json`:
+Add to your global OpenCode config (`~/.config/opencode/opencode.json`):
 
 ```json
 {
-  "plugin": ["opencode-memelord"],
-  "mcp": {
-    "memelord": {
-      "type": "local",
-      "command": ["memelord", "serve"],
-      "environment": { "MEMELORD_DIR": ".memelord" },
-      "enabled": true
-    }
-  }
+  "plugin": ["opencode-memelord@latest"]
 }
 ```
 
-Make sure memelord is installed globally:
-
-```bash
-npm install -g memelord
-```
-
-Then initialize the project database:
-
-```bash
-memelord init
-```
+That's it. OpenCode auto-installs the plugin and all dependencies at startup.
 
 ## How it works
 
-This plugin is a thin wrapper around the `memelord hook` CLI. It translates OpenCode's plugin events into the same hook commands that memelord uses for Claude Code, so all the analysis, storage, embedding, and decay logic stays in memelord.
+- **Global database** -- memories are stored at `~/.config/memelord/projects/<project>/memory.db`, keyed by git remote URL. Multiple worktrees of the same repo share the same database.
+- **Local embeddings** -- uses `Xenova/all-MiniLM-L6-v2` (384-dim, quantized, runs on CPU) via `@huggingface/transformers`. No API keys needed. The model is lazy-loaded on first use.
+- **Uses the [memelord SDK](https://github.com/glommer/memelord)** directly -- same memory lifecycle, scoring, and decay algorithms. Same analysis logic for detecting self-corrections, discoveries, and failure patterns.
 
-- **No logic is duplicated** -- the plugin delegates everything to the memelord CLI
-- **Automatic upstream updates** -- when memelord improves its hooks, this plugin benefits without changes
-- **MCP tools still work** -- the plugin handles lifecycle hooks, the MCP server provides memory tools (`memory_start_task`, `memory_report`, `memory_end_task`, `memory_contradict`, `memory_status`)
+### Memory lifecycle
+
+1. **Session starts** -- top memories by weight are injected into context
+2. **Agent works** -- tool failures are tracked automatically
+3. **Agent finishes responding** -- transcript is analyzed for self-corrections (failed tool -> same tool succeeds with different input) and discoveries (high-token exploration sessions)
+4. **Session ends** -- new memories are embedded and weight decay runs
+
+Memories that consistently help survive. Memories that don't get garbage collected over time.
 
 ## Requirements
 
-- [memelord](https://github.com/glommer/memelord) installed globally (`npm install -g memelord`)
 - [OpenCode](https://opencode.ai) v1.0+
-- A `.memelord/` directory in your project (created by `memelord init`)
 
 ## License
 

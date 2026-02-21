@@ -1,13 +1,15 @@
 {
   "name": "opencode-memelord",
-  "version": "0.0.1",
-  "description": "OpenCode plugin for memelord - persistent memory for coding agents",
+  "version": "0.1.1",
+  "description": "OpenCode plugin for memelord — persistent memory for coding agents",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "bun build ./src/index.ts --outdir ./dist --target node && tsc --emitDeclarationOnly",
-    "typecheck": "tsc --noEmit"
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --external memelord --external @opencode-ai/plugin --external @opencode-ai/sdk --external @huggingface/transformers --external zod && tsc --emitDeclarationOnly",
+    "typecheck": "tsc --noEmit",
+    "format": "oxfmt --write",
+    "format:check": "oxfmt --check"
   },
   "keywords": [
     "opencode",
@@ -24,11 +26,13 @@
   },
   "dependencies": {
     "@opencode-ai/plugin": "^1.2.10",
+    "@huggingface/transformers": "^3.0.0",
     "memelord": "^0.1.4"
   },
   "devDependencies": {
     "@opencode-ai/sdk": "^1.2.10",
     "@types/bun": "latest",
+    "oxfmt": "^0.34.0",
     "typescript": "^5.0.0"
   },
   "opencode": {
