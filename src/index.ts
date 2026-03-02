@@ -54,7 +54,7 @@ export const MemelordPlugin: Plugin = async ({ client, worktree, $ }) => {
           () => {},
         )
       } else if (event.type === 'session.deleted') {
-        await onSessionDeleted(event.properties.info.id, storeManager)
+        await onSessionDeleted(event.properties.info.id, client, storeManager)
       }
     },
   }
