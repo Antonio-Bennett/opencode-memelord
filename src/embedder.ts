@@ -14,12 +14,15 @@ let cachedEmbedder: EmbedFn | null = null
 export async function createEmbedder(): Promise<EmbedFn> {
   if (cachedEmbedder) return cachedEmbedder
 
+  process.env.TRANSFORMERS_VERBOSITY ??= 'error'
+
   const { pipeline } = await import('@huggingface/transformers')
 
   const model = process.env.MEMELORD_MODEL ?? 'Xenova/all-MiniLM-L6-v2'
 
   const extractor = await pipeline('feature-extraction', model, {
     quantized: true,
+    dtype: 'q8',
   } as any)
 
   cachedEmbedder = async (text: string): Promise<Float32Array> => {

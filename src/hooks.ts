@@ -217,7 +217,13 @@ You have a persistent memory system available via tools. Use it:
       },
     })
   } catch (e: any) {
-    console.error(`memelord SessionStart error: ${e.message}`)
+    await client.app.log({
+      body: {
+        service: 'memelord',
+        level: 'error',
+        message: `SessionStart error: ${e.message}`,
+      },
+    })
   }
 }
 
@@ -358,9 +364,13 @@ export async function onSessionIdle(
             penalized++
           }
           if (penalized > 0) {
-            console.error(
-              `memelord: penalized ${penalized} injected memories (session used ${Math.round(totalTokens2 / 1000)}k tokens)`,
-            )
+            await client.app.log({
+              body: {
+                service: 'memelord',
+                level: 'info',
+                message: `penalized ${penalized} injected memories (session used ${Math.round(totalTokens2 / 1000)}k tokens)`,
+              },
+            })
           }
         }
       }
@@ -395,15 +405,31 @@ export async function onSessionIdle(
     }
 
     if (correctionsFound > 0) {
-      console.error(
-        `memelord: stored ${correctionsFound} auto-detected corrections`,
-      )
+      await client.app.log({
+        body: {
+          service: 'memelord',
+          level: 'info',
+          message: `stored ${correctionsFound} auto-detected corrections`,
+        },
+      })
     }
     if (discoveryStored) {
-      console.error('memelord: stored 1 discovery from high-token exploration')
+      await client.app.log({
+        body: {
+          service: 'memelord',
+          level: 'info',
+          message: 'stored 1 discovery from high-token exploration',
+        },
+      })
     }
   } catch (e: any) {
-    console.error(`memelord Stop error: ${e.message}`)
+    await client.app.log({
+      body: {
+        service: 'memelord',
+        level: 'error',
+        message: `Stop error: ${e.message}`,
+      },
+    })
   }
 }
 
@@ -413,6 +439,7 @@ export async function onSessionIdle(
  */
 export async function onSessionDeleted(
   sessionId: string,
+  client: PluginInput['client'],
   storeManager: StoreManager,
 ): Promise<void> {
   try {
@@ -420,18 +447,34 @@ export async function onSessionDeleted(
 
     const embedded = await store.embedPending()
     if (embedded > 0) {
-      console.error(`memelord: embedded ${embedded} pending memories`)
+      await client.app.log({
+        body: {
+          service: 'memelord',
+          level: 'info',
+          message: `embedded ${embedded} pending memories`,
+        },
+      })
     }
 
     const decayResult = await store.decay()
     if (decayResult.deleted > 0) {
-      console.error(
-        `memelord: cleaned up ${decayResult.deleted} stale memories`,
-      )
+      await client.app.log({
+        body: {
+          service: 'memelord',
+          level: 'info',
+          message: `cleaned up ${decayResult.deleted} stale memories`,
+        },
+      })
     }
 
     storeManager.cleanupSession(sessionId)
   } catch (e: any) {
-    console.error(`memelord SessionEnd error: ${e.message}`)
+    await client.app.log({
+      body: {
+        service: 'memelord',
+        level: 'error',
+        message: `SessionEnd error: ${e.message}`,
+      },
+    })
   }
 }
